@@ -157,10 +157,13 @@ def view_one_project(request, slug):
     for i in assigned_tsrs:
         averages = []
         avg = 0
+        #print(len(completed_tsrs))
         for j in completed_tsrs:
+            print("Evaluatee: %s"%j.evaluatee)
             avg = avg + j.percent_contribution
             avg = avg / len(completed_tsrs)
             averages.append((j.evaluatee, avg))
+            #print("%d\n\n"%avg)
             tsr_tuple.setdefault(j.evaluatee, []).append([avg, j, i])
 
     tsr_keys = tsr_tuple.keys()
@@ -237,7 +240,7 @@ def request_join_project(request, slug):
         Alert.objects.create(
             sender=request.user,
             to=project.creator,
-            msg=request.user.username + " has revoked his request to join " + project.title,
+            msg=request.user.username + " has revoked there request to join " + project.title,
             url=reverse('view_one_project',args=[project.slug]),
             )
 
@@ -464,7 +467,7 @@ def edit_project(request, slug):
     # if user is not project owner or they arent in the member list
     if request.user.profile.isGT or request.user == course.creator:
         pass
-    elif not request.user == project.creator:
+    elif not request.user  in project.members.all():
         #redirect them with a message
         messages.warning(request, 'Only the Project Owner can make changes to this project!')
         return redirect(view_one_project, project.slug)
@@ -875,6 +878,7 @@ def view_tsr(request, slug):
             avg=0
             if(len(tsr_single)!=0):
                 for tsr_obj in tsr_single:
+                    print("\n\n%d\n\n"%tsr_obj.percent_contribution)
                     avg=avg+tsr_obj.percent_contribution
                 avg=avg/len(tsr_single)
             tsr_dict.append({'email':member.email, 'tsr' :tsr_single,
