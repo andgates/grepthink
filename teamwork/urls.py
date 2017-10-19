@@ -51,14 +51,18 @@ urlpatterns = [
         url(r'^project/(?P<slug>[^/]+)/update/$', project_views.post_update, name='post_update'),
         # Add new resource (based on slug)
         url(r'^project/(?P<slug>[^/]+)/resource/$', project_views.resource_update, name='resource_update'),
-        # Update TSR information for normal tsr
-        url(r'^project/(?P<slug>[^/]+)/tsr/$', project_views.tsr_update, name='tsr_update'),
+        # Update TSR information
+        url(r'^project/(?P<slug>[^/]+)/tsr/(?P<assslug>[^/]+)/$', project_views.tsr_update, name='tsr_update'),
+        # Edit TSR information
+        url(r'^project/(?P<slug>[^/]+)/tsr/(?P<assslug>[^/]+)/$', project_views.tsr_edit, name='tsr_edit'),
         # View TSRs
         url(r'^project/(?P<slug>[^/]+)/view_tsr/$', project_views.view_tsr, name='view_tsr'),
         # View meeting times
         url(r'^project/(?P<slug>[^/]+)/meetings/$', project_views.view_meetings, name='view_meetings'),
         # Request to join Project
         url(r'^project/(?P<slug>[^/]+)/join/$', project_views.request_join_project, name='request_to_join'),
+        # Request to leave Project
+        url(r'^project/(?P<slug>[^/]+)/leave/$', project_views.leave_project, name='leave_project'),
         # Add member to project
         url(r'^project/(?P<slug>[^/]+)/add/(?P<uname>[^/]+)$', project_views.add_member, name='add_member'),
         # Add member to project
@@ -72,7 +76,11 @@ urlpatterns = [
         url(r'^project/create/ajax/add_desired_skills/$', project_views.create_desired_skills, name='create_desired_skills'),
 
         # COURSE
-        #
+        # Delete individual assignment (based on slug)
+        url(r'^assignment/(?P<slug>[^/]+)/delete/$', course_views.delete_assignment, name='delete_assignment'),
+        # Edit individual assignment (based on slug)
+        url(r'^assignment/(?P<slug>[^/]+)/edit/$', course_views.edit_assignment, name='edit_assignment'),
+
         # View all courses
         url(r'^course/$', course_views.view_courses, name='view_course'),
         # Join a course (valid for all courses)
@@ -83,6 +91,8 @@ urlpatterns = [
         url(r'^course/(?P<slug>[^/]+)/$', course_views.view_one_course, name='view_one_course'),
         # Delete individual course (based on slug)
         url(r'^course/(?P<slug>[^/]+)/delete/$', course_views.delete_course, name='delete_course'),
+        # Drop from a course based on a slug
+        #url(r'^course/(?P<slug>[^/]+)/drop/$', course_views.drop_course, name='drop_course'),
         # Edit individual course (based on slug)
         url(r'^course/(?P<slug>[^/]+)/edit/$', course_views.edit_course, name='edit_course'),
         # Stats page link

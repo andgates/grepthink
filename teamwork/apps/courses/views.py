@@ -74,7 +74,12 @@ def view_one_course(request, slug):
     # To see if
     # it's actually being pushed to heroku
     if not request.user.profile.isGT:
-        user_role = Enrollment.objects.filter(user=request.user, course=course).first().role
+        # check if current user is enrolled in the course
+        if request.user in course.students.all() or request.user.profile.isProf:
+            user_role = Enrollment.objects.filter(user=request.user, course=course).first().role
+        else:
+            # init user_role otherwise
+            user_role = "not enrolled"
     else:
         user_role = 'GT'
 
@@ -94,60 +99,44 @@ def view_one_course(request, slug):
     asgs = list(course.assignments.all())
 
 
+    available=[]
+    for i in students:
+        available.append(i.user)
+
+    for i in projects:
+        for j in i.members.all():
+            if j in available:
+                available.remove(j)
+
     student_users = []
     for stud in students:
         temp_user = get_object_or_404(User, username=stud)
         student_users.append(temp_user)
 
-    assignmentForm = AssignmentForm(request.user.id)
+    assignmentForm = AssignmentForm(request.user.id, slug)
     if(request.method == 'POST'):
-        assignmentForm = AssignmentForm(request.user.id,request.POST)
+        assignmentForm = AssignmentForm(request.user.id, slug, request.POST)
         if assignmentForm.is_valid():
-            data = assignmentForm.cleaned_data
-            ass_date = data.get('ass_date')
-            due_date = data.get('due_date')
-            ass_type = data.get('ass_type').lower()
-            ass_name = data.get('ass_name')
-            ass_number = data.get('ass_number')
-            description = data.get('description')
+            ass = Assignment()
+            ass.due_date = assignmentForm.cleaned_data.get('due_date')
+            ass.ass_date = assignmentForm.cleaned_data.get('ass_date')
+            ass.ass_type =assignmentForm.cleaned_data.get('ass_type').lower()
+            ass.ass_name = assignmentForm.cleaned_data.get('ass_name')
+            ass.description = assignmentForm.cleaned_data.get('description')
+            ass.ass_number = assignmentForm.cleaned_data.get('ass_number')
+            print(ass.ass_number)
 
+            ass.save()
 
-            # checking if there is an assignment of same type already in
-            # progress based on assignment type and date
-            split_type = ass_type.split(" ")
-            print(split_type)
-            for asg in asgs:
-                for word in split_type:
-                    if word in asg.ass_type:
-                        today = datetime.now().date()
-                        # date formatting
-                        asg_ass_date = asg.ass_date
-                        asg_ass_date = datetime.strptime(asg_ass_date,
-                            "%Y-%m-%d").date()
-                        # date formatting
-                        asg_due_date = asg.due_date
-                        asg_due_date = datetime.strptime(asg_due_date,
-                            "%Y-%m-%d").date()
-
-                        # verifies existing project doesnt exist within due date
-                        if asg_ass_date < today <= asg_due_date:
-                            # print("assignment already in progress")
-                            # need to change this redirect to display message
-                            # so that user is aware their info wasn't stored
-                            return redirect(view_one_course,course.slug)
-
-            course.assignments.add(Assignment.objects.create(ass_name=ass_name,
-
-                ass_type=ass_type, ass_date=ass_date, due_date=due_date, description=description,
-                ass_number=ass_number))
+            course.assignments.add(ass)
             course.save()
-            print(course.assignments.all())
+
         messages.info(request, 'You have successfully created an assignment')
         return redirect(view_one_course,course.slug)
 
     return render(request, 'courses/view_course.html', { 'isProf':isProf, 'assignmentForm':assignmentForm,
         'course': course , 'projects': projects, 'date_updates': date_updates, 'students':student_users,
-        'user_role':user_role,
+        'user_role':user_role, 'available':available, 'assignments':asgs,
         'page_name' : page_name, 'page_description': page_description, 'title': title, 'staff': staff})
 
 
@@ -158,10 +147,16 @@ def view_stats(request, slug):
     page_description = "Statistics for %s"%(cur_course.name)
     title = "Statistics"
 
+    if not request.user.profile.isGT:
+        user_role = Enrollment.objects.filter(user=request.user, course=cur_course).first().role
+    else:
+        user_role = 'GT'
+
     if request.user.profile.isGT:
         pass
     elif not request.user.profile.isProf:
-        return redirect(view_one_course, cur_course.slug)
+        if not user_role=="ta":
+            return redirect(view_one_course, cur_course.slug)
 
     students_num = Enrollment.objects.filter(course = cur_course, role="student")
     projects_num = projects_in_course(slug)
@@ -262,6 +257,37 @@ def join_course(request):
     else:
         form = JoinCourseForm(request.user.id)
     return render(request, 'courses/join_course.html', {'form': form, 'page_name' : page_name, 'page_description': page_description, 'title': title})
+
+
+# @login_required
+# def drop_course(request, slug):
+#     #Does not delete projects
+#     user = request.user
+#     # current course
+#     cur_course = get_object_or_404(Course, slug=slug)
+#     # projects in current course
+#     projects = projects_in_course(slug)
+#     # enrollment objects containing current user
+#     user_courses = request.user.enrollment.all()
+#     # current courses user is in
+#     to_delete = Enrollment.objects.filter(user=user, course=cur_course, role="student")
+#
+#     for mem_obj in to_delete:
+#         Alert.objects.create(
+#             sender=request.user,
+#             to=f_user,
+#             msg="You were removed from: " + course.name,
+#             url=reverse('view_one_course',args=[course.slug]),
+#             )
+#         mem_obj.delete()
+#         removed = True
+#
+#     if removed:
+#         messages.add_message(request, messages.SUCCESS, "Member(s) successfully removed from the course.")
+#     else:
+#         messages.add_message(request, messages.SUCCESS, "Failed to succesfully remove member(s) from the course.")
+#
+#     return HttpResponseRedirect('/course')
 
 @login_required
 def show_interest(request, slug):
@@ -430,14 +456,16 @@ def edit_course(request, slug):
 
     tas = Enrollment.objects.filter(course=course, role="ta")
     students = Enrollment.objects.filter(course=course, role="student")
+    user_role = Enrollment.objects.filter(user=request.user, course=course).first().role
 
     if request.user.profile.isGT:
         pass
     #if user is not a professor or they did not create course
     elif not request.user.profile.isProf or not course.creator == request.user:
-        #redirect them to the /course directory with message
-        messages.info(request,'Only Professor can edit course')
-        return HttpResponseRedirect('/course')
+        if not user_role=="ta":
+            #redirect them to the /course directory with message
+            messages.info(request,'Only Professor can edit course')
+            return HttpResponseRedirect('/course')
 
     # Add a member to the course
     if request.POST.get('members'):
@@ -575,6 +603,62 @@ def edit_course(request, slug):
             request, 'courses/edit_course.html',
             {'form': form,'course': course, 'tas':tas, 'students':students, 'page_name' : page_name, 'page_description': page_description, 'title': title}
             )
+@login_required
+def edit_assignment(request, slug):
+    """
+    Edit assignment method, creating generic form
+    """
+    ass = get_object_or_404(Assignment, slug=slug)
+    course = ass.course.first()
+    page_name = "Edit Assignment"
+    page_description = "Edit %s"%(ass.ass_name)
+    title = "Edit Assignment"
+
+    if not request.user.profile.isGT:
+        user_role = Enrollment.objects.filter(user=request.user, course=course).first().role
+    else:
+        user_role = 'GT'
+
+    if request.user.profile.isGT:
+        pass
+    #if user is not a professor or they did not create course
+    elif not request.user.profile.isProf or not course.creator == request.user:
+        if not user_role=="ta":
+            #redirect them to the /course directory with message
+            messages.info(request,'Only a Professor or TA can Edit an Assignment')
+            return HttpResponseRedirect('/course')
+
+    if(request.method == 'POST'):
+        assignmentForm = EditAssignmentForm(request.user.id, slug, request.POST)
+        if assignmentForm.is_valid():
+            data = assignmentForm.cleaned_data
+            due_date = data.get('due_date')
+            ass_date = data.get('ass_date')
+            ass_type = data.get('ass_type').lower()
+            ass_name = data.get('ass_name')
+            description = data.get('description')
+            ass_number = data.get('ass_number')
+
+            # edit the current assignment's properties w/ the new values
+            ass.due_date = due_date
+            ass.ass_date = ass_date
+            ass.ass_type = ass_type
+            ass.ass_name = ass_name
+            ass.description = description
+            ass.ass_number = ass_number
+            ass.save()
+        else:
+            print("FORM ERRORS: ", form.errors)
+
+        return redirect(view_one_course,course.slug)
+
+    else:
+        form = EditAssignmentForm(request.user.id, slug, instance=ass)
+
+    return render(
+            request, 'courses/edit_assignment.html',
+            {'assignmentForm': form,'course': course, 'ass':ass, 'page_name' : page_name, 'page_description': page_description, 'title': title}
+            )
 
 
 @login_required
@@ -597,6 +681,35 @@ def delete_course(request, slug):
     #deletes course
     course.delete()
     return redirect(view_courses)
+
+@login_required
+def delete_assignment(request, slug):
+    """
+    Delete course method
+    """
+    ass = get_object_or_404(Assignment, slug=slug)
+    course = ass.course.first()
+
+    if not request.user.profile.isGT:
+        user_role = Enrollment.objects.filter(user=request.user, course=course).first().role
+    else:
+        user_role = 'GT'
+
+    print("user_role",user_role)
+
+    if request.user.profile.isGT:
+        pass
+    elif not request.user.profile.isProf:
+        if not user_role == "ta":
+            return redirect(view_one_course, course.slug)
+
+    #Runs through each project and deletes them
+    for a in ass.subs.all():
+        a.delete()
+
+    #deletes course
+    ass.delete()
+    return redirect(view_one_course, course.slug)
 
 @login_required
 def update_course(request, slug):
@@ -910,7 +1023,6 @@ def claim_projects(request, slug):
             available.append(proj)
 
     if request.method == 'POST':
-        print("we are posting")
 
         if request.POST.get('remove_claim'):
             proj_name = request.POST.get('remove_claim')
