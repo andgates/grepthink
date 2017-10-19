@@ -822,6 +822,8 @@ def tsr_update(request, slug, assslug):
                 tsr.late = late
                 print(tsr.late)
 
+                print("saved TSR w/ %:", form.cleaned_data.get('perc_contribution'))
+
                 tsr.save()
 
                 # gets fields variables and saves them to project
