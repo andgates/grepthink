@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load i18n %}
-<!-- <script>
+<script>
 function checkTextField(field) {
     if (field.value == '') {
         alert("Field is empty");
@@ -9,7 +9,7 @@ function checkTextField(field) {
 }
 </script>
 <input type="text" name="checking" id="checking"
-onblur="checkTextField(this);" /> -->
+onblur="checkTextField(this);" />
 {% block content %}
   <form action="{% url 'tsr_update' cur_proj.slug ass.slug%}" method="post" role="form">
     {% csrf_token %}
