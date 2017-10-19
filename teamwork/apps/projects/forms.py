@@ -397,9 +397,7 @@ class TSR(forms.ModelForm):
 
     perc_contribution = forms.DecimalField(
         widget=forms.NumberInput(attrs={'class': 'form-control'}),
-        label='% Contribution (Values between 0-99 only!)',
-        max_digits=2,
-        decimal_places=0,
+        label='% Contribution (Values between 0-99 only!)',        
         required=True)
 
     pos_fb = forms.CharField(
