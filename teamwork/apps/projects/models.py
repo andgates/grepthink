@@ -64,7 +64,7 @@ class Tsr(models.Model):
     evaluatee = models.ForeignKey(User, on_delete=models.CASCADE,
         related_name="evaluatee", default=0)
     # sprint percent contribution
-    percent_contribution = models.DecimalField(max_digits=2, decimal_places=0)
+    percent_contribution = models.IntegerField(default=0)
     # evaluatee pros
     positive_feedback = models.CharField(max_length=255, default='')
     # evaluatee cons
