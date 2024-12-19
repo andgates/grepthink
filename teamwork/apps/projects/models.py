@@ -556,12 +556,12 @@ class ProjectUpdate(models.Model):
         date: Date that the project update was posted
         user: The currently logged in user (associated with the project update)
     """
-    project = models.ForeignKey(Project)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
     update_title = models.CharField(
         max_length=255, default="Default Update Title")
     update = models.TextField(max_length=2000, default="Default Update")
     date = models.DateTimeField(editable=True)
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = "Project Update"
@@ -579,9 +579,9 @@ class ProjectUpdate(models.Model):
 
 class ResourceUpdate(models.Model):
 
-    project = models.ForeignKey(Project)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
     date = models.DateTimeField(editable=True)
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     src_title = models.CharField(max_length=255, default="Default Resource Title")
     src_link = models.URLField(max_length=2000, default="Default Resource Link")
 

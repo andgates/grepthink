@@ -129,7 +129,7 @@ WSGI_APPLICATION = 'teamwork.wsgi.application'
 if 'TRAVIS' in os.environ:
     DATABASES = {
         'default': {
-            'ENGINE':   'django.db.backends.postgresql_psycopg2',
+            'ENGINE':   'django.db.backends.postgresql',
             'NAME':     'travisdb',  # Must match travis.yml setting
             'USER':     'postgres',
             'PASSWORD': '',

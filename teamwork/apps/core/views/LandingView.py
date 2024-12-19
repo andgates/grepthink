@@ -18,7 +18,7 @@ def index(request):
         django.shortcuts.render: Page render.
     """
     # Render landing page for not logged in user
-    logged_in = request.user.is_authenticated()
+    logged_in = request.user.is_authenticated
     if not logged_in:
         return render_landing(request)
 

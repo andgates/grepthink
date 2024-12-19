@@ -429,12 +429,12 @@ class CourseUpdate(models.Model):
         date_edit:  Date last edited
         creator:    ForeignKey to user who wrote post
     """
-    course = models.ForeignKey(Course)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
     title = models.CharField(max_length=255, default="No Title Provided")
     content = models.TextField(max_length=2000, default="*No Content Provided*")
     date_post = models.DateTimeField(editable=True)
     date_edit = models.DateTimeField(editable=True)
-    creator = models.ForeignKey(User)
+    creator = models.ForeignKey(User, on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = "Course Update"

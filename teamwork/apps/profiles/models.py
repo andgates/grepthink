@@ -132,8 +132,8 @@ class Alert(models.Model):
         'course_inv'    - invitation to a course
     """
 
-    sender = models.ForeignKey(User, default=None, related_name="sender")
-    to = models.ForeignKey(User, related_name="to")
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, default=None, related_name="sender")
+    to = models.ForeignKey(User, on_delete=models.CASCADE, related_name="to")
     date = models.DateTimeField(auto_now_add=True)
     msg = models.CharField(max_length=500)
     read = models.BooleanField(default=False)
@@ -185,7 +185,7 @@ class Profile(models.Model):
         __str__(self):                  Human readeable representation of the profile object.
 
     """
-    user = models.OneToOneField(User)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     bio = models.TextField(max_length=500, blank=True)
     name = models.TextField(max_length=75, blank=True)
     institution = models.TextField(max_length=100, blank=True)

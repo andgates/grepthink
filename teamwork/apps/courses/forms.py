@@ -5,7 +5,7 @@ from django import forms
 from django.contrib.admin.widgets import AdminDateWidget
 from django.core.exceptions import ValidationError
 from django.db.models import Q
-from django.forms import extras
+from django.forms.widgets import SelectDateWidget
 from django.shortcuts import get_object_or_404
 from teamwork.apps.profiles.models import *
 
@@ -457,14 +457,14 @@ class AssignmentForm(forms.ModelForm):
 
     # date assignment will start
     ass_date = forms.DateField(
-        widget = extras.SelectDateWidget,
+        widget = SelectDateWidget,
         input_formats = ['%Y-%m-%d'],
         label="Open Date",
         initial=datetime.date.today()
     )
     # date assignment will end (users can no longer submit)
     due_date = forms.DateField(
-        widget = extras.SelectDateWidget,
+        widget = SelectDateWidget,
         input_formats = ['%Y-%m-%d'],
         initial=datetime.date.today() + timedelta(days=7)
     )
@@ -513,14 +513,14 @@ class EditAssignmentForm(forms.ModelForm):
 
     # date assignment will start
     ass_date = forms.DateField(
-        widget = extras.SelectDateWidget,
+        widget = SelectDateWidget,
         input_formats = ['%Y-%m-%d'],
         label="Open Date",
         initial=datetime.date.today()
     )
     # date assignment will end (users can no longer submit)
     due_date = forms.DateField(
-        widget = extras.SelectDateWidget,
+        widget = SelectDateWidget,
         input_formats = ['%Y-%m-%d'],
         initial=datetime.date.today() + timedelta(days=7)
     )

@@ -3,7 +3,7 @@ import json
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.shortcuts import get_object_or_404, redirect, render
 from teamwork.apps.core.helpers import *
 # Imported Methods/Classes

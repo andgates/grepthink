@@ -20,7 +20,7 @@ def login(request):
     page_description = ""
     title = "Login"
 
-    authenticated = request.user.is_authenticated()
+    authenticated = request.user.is_authenticated
     if authenticated:
         # If the user is a professor, render their dashboard
         if request.user.profile.isProf:
